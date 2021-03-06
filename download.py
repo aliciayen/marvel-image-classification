@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import optparse
+import urllib.parse
 
 
 def main():
@@ -31,6 +32,20 @@ def main():
 
 def download_images(engine, search_term, destpattern, count):
     raise NotImplementedError()
+
+def _generate_google_url(search_term):
+    ''' _generate_google_url(search_term, ...) -> url
+
+    Generates a google image search URL for the search term provided.
+    This can be expanded later to allow for additional fitlering for
+    specific image types.
+    '''
+
+    params = {
+        'q': search_term,
+        'tbm': 'isch',
+    }
+    return 'https://www.google.com/search?' + urllib.parse.urlencode(params)
 
 def _pathify(string):
     ''' _pathify(string) -> string
