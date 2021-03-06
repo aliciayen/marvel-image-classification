@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import optparse
 
@@ -24,10 +25,24 @@ def main():
 
     with open(args[0]) as f:
         for search_term in f:
-            download_images(opts.engine, search_term, int(opts.count))
+            destpattern = opts.output_dir + '/' + _pathify(search_term)
+            download_images(opts.engine, search_term, destpattern,
+                            int(opts.count))
 
-def download_images(engine, search_term, count):
+def download_images(engine, search_term, destpattern, count):
     raise NotImplementedError()
+
+def _pathify(string):
+    ''' _pathify(string) -> string
+
+    Generates a "sanitized" string from the input given (i.e., one
+    containing only alphanumeric characters, digits, underscores, and
+    dashes) that cab be safely used as a filename pattern for output
+    images. Strips trailing whitespace and converts invalid characters
+    to underscores.
+    '''
+
+    return re.sub(r'[^0-9a-zA-Z_-]', '_', string.strip())
 
 
 if __name__ == '__main__':
