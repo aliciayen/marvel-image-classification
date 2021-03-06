@@ -1,3 +1,5 @@
+import os
+import shutil
 import unittest
 import download
 
@@ -17,5 +19,23 @@ class TestImageDownloader(unittest.TestCase):
             self.fail("Image search type not set appropriately")
         if 'q=wibble' not in params_list:
             self.fail("Search keyword not set appropriately")
+
+    def test_download(self):
+        dl_dir = "./unittest-images/"
+
+        if os.path.exists(dl_dir):
+            shutil.rmtree('./unittest-images/')
+
+        os.mkdir('./unittest-images/')
+        try:
+            download.download_images('google', 'squirrel',
+                                     './unittest-images/squirrel', 3)
+            for i in range(0, 3):
+                path = './unittest-images/squirrel.%03i.jpg' % i
+                if not os.path.exists(path):
+                    self.fail("Image file '%s' does not exist" % path)
+        finally:
+            shutil.rmtree('./unittest-images/')
+
 
 unittest.main()
