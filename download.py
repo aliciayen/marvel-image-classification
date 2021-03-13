@@ -108,7 +108,11 @@ def _pathify(string):
     to underscores.
     '''
 
-    return re.sub(r'[^0-9a-zA-Z_-]', '_', string.strip())
+    sanitized = re.sub(r'[^0-9a-zA-Z_-]', '_', string.strip())
+
+    # Remove duplicate underscores and trailing underscores from sanitized string 
+    sanitized = re.sub('(_{2,})', '_', sanitized)
+    return re.sub('_$','', sanitized)
 
 def _check_magic(img):
     ''' _check_magic(image_data) -> filetype
