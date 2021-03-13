@@ -20,6 +20,23 @@ class TestImageDownloader(unittest.TestCase):
         if 'q=wibble' not in params_list:
             self.fail("Search keyword not set appropriately")
 
+    def test_image_style(self):
+        url = download.generate_search_url("wibble", style='clipart')
+        baseurl, params = url.split('?')
+
+        self.assertEqual(baseurl, "https://www.google.com/search")
+
+        params_list = params.split('&')
+        if 'tbm=isch' not in params_list:
+            self.fail("Image search type not set appropriately")
+        if 'q=wibble' not in params_list:
+            self.fail("Search keyword not set appropriately")
+        if 'tbs=itp%3Aclipart' not in params_list:
+            self.fail("Image style not set appropriately")
+
+        self.assertRaises(ValueError, download.generate_search_url,
+                           "wibble", style='broken')
+
     def test_download(self):
         dl_dir = "./unittest-images/"
 
