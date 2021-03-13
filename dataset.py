@@ -1,7 +1,7 @@
 import pandas as pd 
 import argparse
 import sys
-from download import _pathify
+from download import pathify
 
 def main():
     parser = argparse.ArgumentParser(
@@ -22,7 +22,7 @@ def main():
 def generate_files(input_file, output_file):
     """
     Reads in a CSV of character names and produces a CSV containing 
-    the character name, good/bad label, and image slug using the _pathify function.
+    the character name, good/bad label, and image slug using the pathify function.
 
     Also produces a text file consisting of 
     only character names, compatible with downloader.py
@@ -34,7 +34,7 @@ def generate_files(input_file, output_file):
     characters['Character'].to_csv('search_list.txt', header=None, index=None)
 
     # Generate CSV with image slug 
-    characters['Image_Slug'] = characters['Character'].apply(lambda x: _pathify(x))
+    characters['Image_Slug'] = characters['Character'].apply(lambda x: pathify(x))
     characters.to_csv(output_file, index=False)
 
 
