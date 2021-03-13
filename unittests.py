@@ -9,7 +9,7 @@ class TestImageDownloader(unittest.TestCase):
         self.assertEqual(res, "Squirrel___Moose")
 
     def test_google_url_gen(self):
-        url = download._generate_google_url('wibble')
+        url = download.generate_search_url('wibble')
         baseurl, params = url.split('?')
 
         self.assertEqual(baseurl, "https://www.google.com/search")
@@ -28,8 +28,8 @@ class TestImageDownloader(unittest.TestCase):
 
         os.mkdir('./unittest-images/')
         try:
-            download.download_images('google', 'squirrel',
-                                     './unittest-images/squirrel', 3)
+            url = download.generate_search_url("squirrel")
+            download.download_images(url, './unittest-images/squirrel', 3)
             for i in range(0, 3):
                 paths = (
                     './unittest-images/squirrel.%03i.jpeg' % i,

@@ -16,8 +16,6 @@ def main():
     )
     p.add_option('-n', '--n-images', dest='count', default=10,
                  help='save N_IMAGES images for each search term')
-    p.add_option('-e', '--search-engine', dest='engine', default='google',
-                 help='Use ENGINE to find images (currently only google)')
     p.add_option('-o', '--output-dir', dest='output_dir', default='images',
                  help='The directory in which to store the downloaded images')
     opts, args = p.parse_args()
@@ -32,23 +30,19 @@ def main():
 
         for search_term in f:
             destpattern = opts.output_dir + '/' + _pathify(search_term)
-            download_images(opts.engine, search_term, destpattern,
-                            int(opts.count))
+            url = generate_search_url(search_term)
+            download_images(url, destpattern, int(opts.count))
 
-def download_images(engine, search_term, destpattern, count):
-    ''' download.download_images(engine, term, destpattern, count)
+def download_images(url, destpattern, count):
+    ''' download.download_images(url, destpattern, count)
 
-    Performs a search using the search engine 'engine' (currently only
-    'google' is supported), and downloads the resulting images to the
-    output directory, with filenames corresponding to 'destpattern'.
-    The number of downloaded images is limited to 'count', or the number
-    of results on the first page, whichever is smaller.
+    Performs a Google using the URL provided in 'url', and downloads the
+    resulting images to the output directory, with filenames
+    corresponding to 'destpattern'. The number of downloaded images is
+    limited to 'count', or the number of results on the first page,
+    whichever is smaller.
     '''
 
-    if engine != 'google':
-        raise NotImplementedError()
-
-    url = _generate_google_url(search_term)
     response = requests.get(url)
     s = bs4.BeautifulSoup(response.content.decode('utf-8', 'ignore'), 'lxml')
 
@@ -67,8 +61,8 @@ def download_images(engine, search_term, destpattern, count):
         with open(out_fname, 'wb') as f:
             f.write(resp.content)
 
-def _generate_google_url(search_term):
-    ''' _generate_google_url(search_term, ...) -> url
+def generate_search_url(search_term):
+    ''' download.generate_search_url(search_term, ...) -> url
 
     Generates a google image search URL for the search term provided.
     This can be expanded later to allow for additional fitlering for
