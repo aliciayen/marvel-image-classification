@@ -31,8 +31,14 @@ class TestImageDownloader(unittest.TestCase):
             download.download_images('google', 'squirrel',
                                      './unittest-images/squirrel', 3)
             for i in range(0, 3):
-                path = './unittest-images/squirrel.%03i.jpg' % i
-                if not os.path.exists(path):
+                paths = (
+                    './unittest-images/squirrel.%03i.jpeg' % i,
+                    './unittest-images/squirrel.%03i.png' % i,
+                )
+                for path in paths:
+                    if not os.path.exists(path):
+                        break
+                else:
                     self.fail("Image file '%s' does not exist" % path)
         finally:
             shutil.rmtree('./unittest-images/')

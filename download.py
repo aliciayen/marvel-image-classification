@@ -62,7 +62,8 @@ def download_images(engine, search_term, destpattern, count):
     limit = min(len(image_urls), count)
     for i, img in enumerate(image_urls[:limit]):
         resp = requests.get(img)
-        out_fname = destpattern + ".%03i.jpg" % i
+        filetype = _check_magic(resp.content)
+        out_fname = destpattern + ".%03i.%s" % (i, filetype)
         with open(out_fname, 'wb') as f:
             f.write(resp.content)
 
@@ -91,6 +92,27 @@ def _pathify(string):
     '''
 
     return re.sub(r'[^0-9a-zA-Z_-]', '_', string.strip())
+
+def _check_magic(img):
+    ''' _check_magic(image_data) -> filetype
+
+    Checks the magic number at the start of the given image data to
+    determine the type. Returns the string extension corresponding to
+    the file type, or 'img' if the image format is unknown.
+    '''
+
+    magic_numbers = {
+        b"\xFF\xD8\xFF\xDB": 'jpeg',
+        b"\xFF\xD8\xFF\xEE": 'jpeg',
+        b"\xFF\xD8\xFF\xE0\x00\x10\x4A\x46\x49\x46\x00\x01": 'jpeg',
+        b"\x89\x50\x4E\x47\x0D\x0A\x1A\x0A": 'png',
+    }
+
+    for magic, filetype in magic_numbers.items():
+        if img[0:len(magic)] == magic:
+            return filetype
+    else:
+        return 'img'
 
 
 if __name__ == '__main__':
