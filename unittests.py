@@ -5,8 +5,8 @@ import download
 
 class TestImageDownloader(unittest.TestCase):
     def test_pathify(self):
-        res = download._pathify("Squirrel & Moose\n")
-        self.assertEqual(res, "Squirrel___Moose")
+        res = download.pathify("Squirrel & Moose\n")
+        self.assertEqual(res, "Squirrel_Moose")
 
     def test_google_url_gen(self):
         url = download.generate_search_url('wibble')

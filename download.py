@@ -40,7 +40,7 @@ def main():
             os.mkdir(opts.output_dir)
 
         for search_term in f:
-            destpattern = opts.output_dir + '/' + _pathify(search_term)
+            destpattern = opts.output_dir + '/' + pathify(search_term)
             url = generate_search_url(search_term, style=opts.style,
                                       domain=opts.domain)
             download_images(url, destpattern, int(opts.count))
@@ -98,8 +98,8 @@ def generate_search_url(search_term, style=None, domain=None):
     }
     return 'https://www.google.com/search?' + urllib.parse.urlencode(params)
 
-def _pathify(string):
-    ''' _pathify(string) -> string
+def pathify(string):
+    ''' download.pathify(string) -> string
 
     Generates a "sanitized" string from the input given (i.e., one
     containing only alphanumeric characters, digits, underscores, and
@@ -108,7 +108,11 @@ def _pathify(string):
     to underscores.
     '''
 
-    return re.sub(r'[^0-9a-zA-Z_-]', '_', string.strip())
+    sanitized = re.sub(r'[^0-9a-zA-Z_-]', '_', string.strip())
+
+    # Remove duplicate underscores and trailing underscores from sanitized string 
+    sanitized = re.sub('(_{2,})', '_', sanitized)
+    return re.sub('_$','', sanitized)
 
 def _check_magic(img):
     ''' _check_magic(image_data) -> filetype
