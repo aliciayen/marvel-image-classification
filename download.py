@@ -23,6 +23,8 @@ def main():
                  help='The directory in which to store the downloaded images')
     p.add_option('-s', '--style', dest='style', default=None,
                  help='Google image search image type (clipart|lineart)')
+    p.add_option('-d', '--domain', dest='domain', default=None,
+                 help="Restrict search results to DOMAIN")
     opts, args = p.parse_args()
 
     if len(args) < 1:
@@ -39,7 +41,8 @@ def main():
 
         for search_term in f:
             destpattern = opts.output_dir + '/' + _pathify(search_term)
-            url = generate_search_url(search_term, style=opts.style)
+            url = generate_search_url(search_term, style=opts.style,
+                                      domain=opts.domain)
             download_images(url, destpattern, int(opts.count))
 
 def download_images(url, destpattern, count):
@@ -70,7 +73,7 @@ def download_images(url, destpattern, count):
         with open(out_fname, 'wb') as f:
             f.write(resp.content)
 
-def generate_search_url(search_term, style=None):
+def generate_search_url(search_term, style=None, domain=None):
     ''' download.generate_search_url(search_term, ...) -> url
 
     Generates a google image search URL for the search term provided.
@@ -84,6 +87,9 @@ def generate_search_url(search_term, style=None):
         tbs = "itp:%s" % style
     else:
         tbs = ""
+
+    if domain is not None:
+        search_term += " site:%s" % domain
 
     params = {
         'q': search_term,

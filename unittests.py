@@ -37,6 +37,16 @@ class TestImageDownloader(unittest.TestCase):
         self.assertRaises(ValueError, download.generate_search_url,
                            "wibble", style='broken')
 
+    def test_domain_filter(self):
+        url = download.generate_search_url("wibble", domain='example.com')
+        baseurl, params = url.split('?')
+
+        self.assertEqual(baseurl, "https://www.google.com/search")
+
+        params_list = params.split('&')
+        if 'q=wibble+site%3Aexample.com' not in params_list:
+            self.fail("Domain filtering not set appropriately")
+
     def test_download(self):
         dl_dir = "./unittest-images/"
 
