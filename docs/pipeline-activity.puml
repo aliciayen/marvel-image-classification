@@ -1,0 +1,20 @@
+@startuml
+skinparam monochrome true
+
+start
+
+:Load Kaggle Dataset;
+:Generate Downloader Input Hash;
+if (Cache Contains Hash Value?) then (no)
+	:Download Images;
+else (yes)
+	:Reuse Existing Images;
+endif
+:Run Filtering CNN;
+:Train/Test Split;
+:Classify;
+:Save Train/Test Metrics;
+
+end
+
+@enduml

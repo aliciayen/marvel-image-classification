@@ -1,0 +1,42 @@
+digraph pipeline {
+	rankdir=LR;
+
+	dataset [shape=Mrecord, label="Kaggle Dataset"]
+	filter_dataset [shape=Mrecord, label="Filter Dataset"]
+	cache [shape=Mrecord, label="Image Cache"]
+	filter_imgs [shape=Mrecord, label="Filtered Images"]
+	split_dataset [shape=Mrecord, label="Train/Test Dataset"]
+	metrics [shape=Mrecord, label="Train/Test Metrics"]
+
+	searchopts [shape=ellipse, label="Search Options"]
+	searchterm [shape=ellipse, label="Search Term"]
+	optimizer [shape=ellipse, label="Optimizer"]
+	optimizer_args [shape=ellipse, label="Optimizer Args"]
+	test_size [shape=ellipse, label="Test Size"]
+
+	downloader [shape=box, label="Downloader"]
+	filter [shape=box, label="Filter CNN"]
+	classifier [shape=box, label="Classifier CNN"]
+	split [shape=box, label="Train/Test Split"]
+
+
+	dataset -> downloader;
+	searchopts -> downloader;
+	searchterm -> downloader;
+
+	downloader -> cache;
+	cache -> downloader;
+
+	cache -> filter;
+	filter_dataset -> filter
+	filter -> filter_imgs;
+
+	filter_imgs -> split;
+	test_size -> split;
+	split -> split_dataset;
+
+	split_dataset -> classifier;
+	optimizer -> classifier;
+	optimizer_args -> classifier;
+	classifier -> metrics;
+}
