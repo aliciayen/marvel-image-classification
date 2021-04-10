@@ -49,13 +49,18 @@ def evaluate(image_path, opt_name, opt_kwargs):
                                               shuffle=True)
 
     resnet = models.resnet18(pretrained=True)
-    resnet = resnet.to(device)
+    
+    # Freeze all of the network except for the final layer 
+    # so that gradients are not computed in backward()
+    for param in resnet.parameters():
+      param.requires_grad = False
+    
     num_features = resnet.fc.in_features
     resnet.fc = nn.Linear(num_features, 2)
-    resnet.fc = resnet.fc.to(device)
+    resnet = resnet.to(device)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = getattr(optim, opt_name)(resnet.parameters(), **opt_kwargs)
+    optimizer = getattr(optim, opt_name)(resnet.fc.parameters(), **opt_kwargs)
     train_stats = _train_network(resnet, criterion, optimizer, train_loader)
     test_stats = _test_network(resnet, criterion, optimizer, test_loader)
 
@@ -76,7 +81,6 @@ def _train_network(net, criterion, optimizer, data_loader, epochs=10):
 
     train_loss = []
     train_acc = []
-    len_train = len(data_loader)
 
     net.train()
 
@@ -99,19 +103,19 @@ def _train_network(net, criterion, optimizer, data_loader, epochs=10):
             optimizer.step()
 
             # Add batch loss to epoch loss
-            epoch_loss += loss.item()
+            epoch_loss += loss.item() * output.size(0)
 
-            # Add batch accuracy to epoch accuracy
-            epoch_accuracy += _accuracy(output, label) # Increment by sum of
-                                                      # correctly predicted
-                                                      # images
-            total += label.size(0) # Increment by number of images in batch
+            # Increment by sum of correctly predicted images
+            epoch_accuracy += _accuracy(output, label) 
+            
+            # Increment by number of images in batch
+            total += label.size(0) 
 
         # Append train accuracy
         train_acc.append(epoch_accuracy / total)
 
         # Append train loss
-        train_loss.append(epoch_loss / len_train)
+        train_loss.append(epoch_loss / total)
 
         # Return epoch statistics
         return {
@@ -128,7 +132,6 @@ def _test_network(net, criterion, optimizer, data_loader):
     test_loss = 0
     test_acc = 0
     total = 0
-    len_test = len(data_loader)
 
     with torch.no_grad():
         net.eval()
@@ -139,19 +142,21 @@ def _test_network(net, criterion, optimizer, data_loader):
             # Prediction step
             output = net(data)
 
-            # Calculate loss and add to test loss
+            # Calculate batch loss and add to test loss
             loss = criterion(output, label)
-            test_loss += loss.item()
+            test_loss += loss.item() * output.size(0)
 
-            # Calculate sum of correctly predicted images
-            test_acc += _accuracy(output, label) # Correctly predicted images
-            total += label.size(0) # Total number of images
+            # Increment by sum of correctly predicted images
+            test_acc += _accuracy(output, label) 
+            
+            # Increment by number of images in batch
+            total += label.size(0) 
 
         # Compute test accuracy
         test_acc = test_acc / total
 
         # Append train loss
-        test_loss = test_loss / len_test
+        test_loss = test_loss / total
 
         # Print test statistics
         return {
