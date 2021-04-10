@@ -3,17 +3,24 @@ skinparam monochrome true
 
 start
 
-:Load Kaggle Dataset;
-:Generate Downloader Input Hash;
-if (Cache Contains Hash Value?) then (no)
-	:Download Images;
-else (yes)
-	:Reuse Existing Images;
-endif
-:Run Filtering CNN;
-:Train/Test Split;
-:Classify;
-:Save Train/Test Metrics;
+:Load Permutation Spec;
+:Generate Parameter Permutations;
+while (Parameters Set List Empty?) is (no)
+	:Select Next Parameter Set;
+	if (Parameter Set Evaluated?) then (no)
+		:Load Dataset;
+		:Generate Downloader Input Hash;
+		if (Cache Contains Hash Value?) then (no)
+			:Download Images;
+		else (yes)
+			:Reuse Existing Images;
+		endif
+		:Run Filtering CNN;
+		:Train/Test Split;
+		:Classify;
+		:Save Train/Test Metrics;
+	endif
+endwhile
 
 end
 

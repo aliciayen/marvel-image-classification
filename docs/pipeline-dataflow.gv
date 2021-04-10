@@ -1,24 +1,34 @@
 digraph pipeline {
 	rankdir=LR;
 
-	dataset [shape=Mrecord, label="Kaggle Dataset"]
+	dataset [shape=Mrecord, label="Dataset"]
 	filter_dataset [shape=Mrecord, label="Filter Dataset"]
 	cache [shape=Mrecord, label="Image Cache"]
 	filter_imgs [shape=Mrecord, label="Filtered Images"]
 	split_dataset [shape=Mrecord, label="Train/Test Dataset"]
 	metrics [shape=Mrecord, label="Train/Test Metrics"]
 
+	searchspec [shape=ellipse, label="Search Spec"]
 	searchopts [shape=ellipse, label="Search Options"]
 	searchterm [shape=ellipse, label="Search Term"]
 	optimizer [shape=ellipse, label="Optimizer"]
 	optimizer_args [shape=ellipse, label="Optimizer Args"]
 	test_size [shape=ellipse, label="Test Size"]
 
+	orchestrator [shape=box, label="Orchestrator"]
 	downloader [shape=box, label="Downloader"]
 	filter [shape=box, label="Filter CNN"]
 	classifier [shape=box, label="Classifier CNN"]
 	split [shape=box, label="Train/Test Split"]
 
+
+	searchspec -> orchestrator
+	orchestrator -> searchopts
+	orchestrator -> searchterm
+	orchestrator -> dataset
+	orchestrator -> test_size
+	orchestrator -> optimizer
+	orchestrator -> optimizer_args
 
 	dataset -> downloader;
 	searchopts -> downloader;
