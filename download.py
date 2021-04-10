@@ -83,7 +83,7 @@ def generate_search_url(search_term, style=None, domain=None):
 
     if style is not None:
         if style not in IMAGE_STYLES:
-            raise ValueError("Unsupported image type")
+            raise ValueError("Unsupported image style: '%s'" % style)
         tbs = "itp:%s" % style
     else:
         tbs = ""
