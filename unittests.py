@@ -2,6 +2,8 @@ import os
 import shutil
 import unittest
 import download
+import pipeline
+import pandas
 
 class TestImageDownloader(unittest.TestCase):
     def test_pathify(self):
@@ -69,6 +71,61 @@ class TestImageDownloader(unittest.TestCase):
                     self.fail("Image file '%s' does not exist" % path)
         finally:
             shutil.rmtree('./unittest-images/')
+
+
+class TestPipeline(unittest.TestCase):
+    def test_hash(self):
+        dataset1 = pandas.DataFrame([
+            {"Character": "Good Guy", "Label": "Hero"},
+            {"Character": "Bad Guy", "Label": "Villain"},
+        ])
+
+        dataset2 = pandas.DataFrame([
+            {"Character": "Gooder Guy", "Label": "Hero"},
+            {"Character": "Bad Guy", "Label": "Villain"},
+        ])
+
+        h1 = pipeline.generate_hash(dataset1, "Marvel Character", {})
+        h2 = pipeline.generate_hash(dataset2, "Marvel Character", {})
+        self.assertNotEqual(h1, h2)
+
+        h1 = pipeline.generate_hash(dataset1, "", {})
+        h2 = pipeline.generate_hash(dataset1, "Marvel Comic Character", {})
+        self.assertNotEqual(h1, h2)
+
+        h1 = pipeline.generate_hash(dataset1, "", {})
+        h2 = pipeline.generate_hash(dataset1, "", {'style': 'lineart'})
+        self.assertNotEqual(h1, h2)
+
+    def test_single_pass(self):
+        dl_dir = "./unittest-images/"
+        config = {
+            'dataset_filename': '100marvelcharacters.csv',
+            'base_search_term': '',
+            'search_options': {},
+            'optimizer': ('Adam', {'lr': 0.0001}),
+            'output_dir': 'images',
+            'test_size': 0.3,
+        }
+
+        if os.path.exists(dl_dir):
+            shutil.rmtree(dl_dir)
+        try:
+            metrics = pipeline.run_pass(config, imagecache=dl_dir, n_images=2)
+        finally:
+            if os.path.exists(dl_dir):
+                shutil.rmtree(dl_dir)
+
+        self.assertEqual(set(['train', 'test']), set(metrics.keys()))
+
+        for k in ('train', 'test'):
+            loss = metrics[k]['loss']
+            acc = metrics[k]['accuracy']
+
+            self.assertTrue(isinstance(loss, float))
+            self.assertTrue(0.0 < loss < 1.0)
+            self.assertTrue(isinstance(acc, float))
+            self.assertTrue(0.0 < acc < 1.0)
 
 
 unittest.main()
