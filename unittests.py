@@ -72,6 +72,17 @@ class TestImageDownloader(unittest.TestCase):
         finally:
             shutil.rmtree('./unittest-images/')
 
+    def test_start_offset(self):
+        url = 'https://www.google.com/search?q=test&tbm=isch&tbs='
+        exp = 'https://www.google.com/search?q=test&tbm=isch&start=42'
+        new = download._set_search_url_offset(url, 42)
+        self.assertEqual(new, exp)
+
+        url = 'https://www.google.com/search?q=test&tbm=isch&tbs=a'
+        exp = 'https://www.google.com/search?q=test&tbm=isch&tbs=a&start=42'
+        new = download._set_search_url_offset(url, 42)
+        self.assertEqual(new, exp)
+
 
 class TestPipeline(unittest.TestCase):
     def test_hash(self):
