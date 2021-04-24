@@ -82,7 +82,7 @@ def run_pass(cfg, imagecache='images', n_images=100):
     dataset = pandas.read_csv(cfg['dataset_filename'])
     imgdir = prepare_imageset(dataset, cfg['base_search_term'],
                               cfg['search_options'], imagecache,
-                              cfg['test_size'], download_count=n_images)
+                              download_count=n_images)
 
     splitdir = train_test_split(imgdir, cfg['test_size'])
 
@@ -92,7 +92,7 @@ def run_pass(cfg, imagecache='images', n_images=100):
     return {'train': stats_trn, 'test': stats_tst}
 
 def prepare_imageset(dataset, base_search_term, search_opts, output_dir,
-                     test_size, download_count=100):
+                     download_count=100):
     ''' pipeline.prepare_imageset(...) -> imagedir
 
     Downloads a base set of images corresponding to the entries in
