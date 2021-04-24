@@ -128,9 +128,9 @@ class TestPipeline(unittest.TestCase):
             if os.path.exists(dl_dir):
                 shutil.rmtree(dl_dir)
 
-        self.assertEqual(set(['train', 'test']), set(metrics.keys()))
+        self.assertEqual(set(['train', 'val', 'test']), set(metrics.keys()))
 
-        for k in ('train', 'test'):
+        for k in ('train', 'val', 'test'):
             loss = metrics[k]['loss']
             acc = metrics[k]['accuracy']
 

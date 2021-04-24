@@ -88,9 +88,10 @@ def run_pass(cfg, imagecache='images', n_images=100):
     splitdir = train_test_split(imgdir, cfg['test_size'], cfg['val_size'])
 
     opt_name, opt_kwargs = cfg['optimizer']
-    stats_trn, stats_tst = classifier.evaluate(splitdir, opt_name, opt_kwargs)
+    stats_trn, stats_val, stats_tst = classifier.evaluate(splitdir, opt_name,
+                                                          opt_kwargs)
 
-    return {'train': stats_trn, 'test': stats_tst}
+    return {'train': stats_trn, 'val': stats_val, 'test': stats_tst}
 
 def prepare_imageset(dataset, base_search_term, search_opts, output_dir,
                      download_count=100):

@@ -68,10 +68,22 @@ def evaluate(image_path, opt_name, opt_kwargs):
 
     criterion = nn.CrossEntropyLoss()
     optimizer = getattr(optim, opt_name)(resnet.fc.parameters(), **opt_kwargs)
-    train_stats = _train_network(resnet, criterion, optimizer, train_loader, val_loader)
+    train_stats = _train_network(resnet, criterion, optimizer, train_loader,
+                                 val_loader)
     test_stats = _test_network(resnet, criterion, optimizer, test_loader)
 
-    return train_stats, test_stats
+    train_summary = {
+        'loss': _average(train_stats['train loss']),
+        'accuracy': _average(train_stats['train accuracy']),
+    }
+    val_summary = {
+        'loss': _average(train_stats['val loss']),
+        'accuracy': _average(train_stats['val accuracy']),
+    }
+    return train_summary, val_summary, test_stats
+
+def _average(iterable):
+    return sum(iterable) / len(iterable)
 
 def _accuracy(output, label):
     """
