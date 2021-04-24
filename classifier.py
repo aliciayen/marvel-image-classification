@@ -151,7 +151,8 @@ def _train_network(net, criterion, optimizer, train_loader, val_loader, epochs=1
         train_accuracies.append(train_acc)
 
         # Validate network for 1 epoch 
-        val_loss, val_acc = _test_network(net, criterion, val_loader) 
+        val_loss, val_acc = _test_network(net, criterion, optimizer,
+                                          val_loader)
         val_losses.append(val_loss)
         val_accuracies.append(val_acc)
 
