@@ -146,13 +146,17 @@ def _train_network(net, criterion, optimizer, train_loader, val_loader, epochs=1
     for epoch in range(1, epochs+1):
 
         # Train network for 1 epoch 
-        train_loss, train_acc = _train_one(net, criterion, optimizer, train_loader)
+        res = _train_one(net, criterion, optimizer, train_loader)
+        train_loss = res['loss']
+        train_acc = res['accuracy']
+
         train_losses.append(train_loss)
         train_accuracies.append(train_acc)
 
         # Validate network for 1 epoch 
-        val_loss, val_acc = _test_network(net, criterion, optimizer,
-                                          val_loader)
+        res = _test_network(net, criterion, optimizer, val_loader)
+        val_loss = res['loss']
+        val_acc = res['accuracy']
         val_losses.append(val_loss)
         val_accuracies.append(val_acc)
 
