@@ -63,6 +63,7 @@ def run_pass(cfg, imagecache='images', n_images=100):
         'search_options': {'style': 'lineart'},
         'optimizer': ('SGD', {'lr': 0.0001, 'momentum': 0.9}),
         'test_size': 0.3,
+        'val_size': 0.1,
 
     'dataset_filename' is the path to the dataset to load.
 
@@ -84,7 +85,7 @@ def run_pass(cfg, imagecache='images', n_images=100):
                               cfg['search_options'], imagecache,
                               download_count=n_images)
 
-    splitdir = train_test_split(imgdir, cfg['test_size'])
+    splitdir = train_test_split(imgdir, cfg['test_size'], cfg['val_size'])
 
     opt_name, opt_kwargs = cfg['optimizer']
     stats_trn, stats_tst = classifier.evaluate(splitdir, opt_name, opt_kwargs)
@@ -135,21 +136,22 @@ def filter_imageset(imagedir):
     # FIXME: implement filtering
     return
 
-def train_test_split(imagedir, test_fraction):
-    ''' pipeline.train_test_split(imagedir, test_fraction) -> splitdir
+def train_test_split(imagedir, test_fraction, val_fraction):
+    ''' pipeline.train_test_split(imgdir, tst_pct, val_pct) -> splitdir
 
     Splits an ImageFolder-structured directory into train and test
     datasets, creating a new directory at the same level as 'imagedir'.
     'imagedir' is the path to the directory containing the class
-    directories, and 'test_fraction is a floating point value between
-    0.0 and 1.0 that specifies the fraction of images to be placed in
-    the test dataset (the remaining images go into the training
-    dataset). Returns the path to the new directory containing the test/
-    and train/ directories.
+    directories. 'test_fraction' and 'val_fraction' are floating point
+    values between 0.0 and 1.0 that specify the fraction of images to be
+    placed in the test and validation datasets, respectively (the
+    remaining images go into the training dataset). Returns the path to
+    the new directory containing the test/, train/, and val/
+    directories.
     '''
     # If we already have a directory with the split train/test data, don't
     # bother doing it again.
-    splitdir = "%s/split-%0.2f" % (imagedir, test_fraction)
+    splitdir = "%s/split-%0.2f-%0.2f" % (imagedir, test_fraction, val_fraction)
     if os.path.exists(splitdir):
         return splitdir
 
@@ -159,20 +161,29 @@ def train_test_split(imagedir, test_fraction):
     classes = os.listdir("%s/base" % imagedir)
     test_list = set()
     train_list = set()
+    val_list = set()
     for c in classes:
         class_imgs = os.listdir("%s/base/%s" % (imagedir, c))
         class_imgs = ["%s/%s" % (c, x) for x in class_imgs]
-        n_test = int(len(class_imgs) * test_fraction)
+        class_imgs = set(class_imgs)
 
-        sampled = rng.sample(class_imgs, n_test)
-        test_list = test_list.union(set(sampled))
-        train_list = train_list.union(set(class_imgs) - test_list)
+        n_test = int(len(class_imgs) * test_fraction)
+        n_val = int(len(class_imgs) * val_fraction)
+
+        test_sampled = set(rng.sample(list(class_imgs), n_test))
+        test_list = test_list.union(test_sampled)
+        remaining = (class_imgs - test_list)
+
+        val_sampled = set(rng.sample(list(remaining), n_val))
+        val_list = val_list.union(val_sampled)
+        train_list = train_list.union(remaining - val_list)
 
     # Create new directories for split data
     traindir = "%s/train" % splitdir
     testdir = "%s/test" % splitdir
+    valdir = "%s/val" % splitdir
     os.mkdir(splitdir)
-    for d in [traindir, testdir]:
+    for d in [traindir, testdir, valdir]:
         os.mkdir(d)
         for c in classes:
             os.mkdir("%s/%s" % (d, c))
@@ -185,7 +196,12 @@ def train_test_split(imagedir, test_fraction):
     else:
         do_copy = shutil.copy
 
-    for setname, splitset in [('test', test_list), ('train', train_list)]:
+    directories = [
+        ('test', test_list),
+        ('train', train_list),
+        ('val', val_list),
+    ]
+    for setname, splitset in directories:
         for fname in splitset:
             src = "%s/base/%s" % (imagedir, fname)
             dest = "%s/%s/%s" % (splitdir, setname, fname)

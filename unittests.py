@@ -117,6 +117,7 @@ class TestPipeline(unittest.TestCase):
             'optimizer': ('Adam', {'lr': 0.0001}),
             'output_dir': 'images',
             'test_size': 0.3,
+            'val_size': 0.1,
         }
 
         if os.path.exists(dl_dir):
