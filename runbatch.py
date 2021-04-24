@@ -12,7 +12,7 @@ class CSVLogger:
         self.rows_written = 0
 
         if isinstance(outfile, str):
-            outfile = open(opts.output, "w")
+            outfile = open(outfile, "w")
         self._writer = csv.writer(outfile)
 
     def log_run(self, params, results):
