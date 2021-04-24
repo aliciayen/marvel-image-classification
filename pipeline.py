@@ -22,18 +22,13 @@ def run_group(cfgspec, log_fn):
           search_options:
               style: [None, lineart]
               domain: [None]
-          download_options:
-              count: 50
-          optimizers:
+          optimizer:
             Adam:
               lr: [0.0001, 0.001, 0.01, 0.1]
             SGD:
               lr: [0.0001, 0.001, 0.01, 0.1]
               momentum: [0.9, 0.8, 0.7]
           test_size: 0.3
-
-        suppress_permutation:
-          - [optimizers.SGD.lr, optimizers.SGD.momentum]
 
     Each key under 'parameters' corresponds to a parameter passed to
     pipeline.run_pass(), but the values are instead a list of values to
@@ -43,6 +38,7 @@ def run_group(cfgspec, log_fn):
     pairs of dot-delimited keys that are independent, and need not be
     varied against each other.
     '''
+    permutations = _permute(cfgspec)
 
     raise NotImplementedError()
 
@@ -92,6 +88,41 @@ def run_pass(cfg, imagecache='images', n_images=100):
                                                           opt_kwargs)
 
     return {'train': stats_trn, 'val': stats_val, 'test': stats_tst}
+
+def _get_permutations(cfgspec):
+    # Optimizer parameters aren't fully independent, so they need to
+    # be handled specially.
+    params = cfgspec['parameters'].copy()
+    params['optimizer'] = _get_optimizer_permutations(params['optimizer'])
+
+    return _permute(params)
+
+def _get_optimizer_permutations(opt_params):
+    all_perms = []
+
+    for optimizer, params in opt_params.items():
+        perms = _permute(params)
+        perms = [(optimizer, x) for x in perms]
+        all_perms += perms
+
+    return all_perms 
+
+def _permute(params):
+    permutations = [{}]
+    for param, values in params.items():
+        new_perm = []
+        for entry in permutations:
+            for v in values:
+                if v == "None":
+                    v = None
+
+                cfg = {}
+                cfg.update(entry)
+                cfg[param] = v
+                new_perm.append(cfg)
+        permutations = new_perm
+
+    return permutations
 
 def prepare_imageset(dataset, base_search_term, search_opts, output_dir,
                      download_count=100):

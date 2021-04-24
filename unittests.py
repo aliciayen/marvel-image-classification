@@ -4,6 +4,7 @@ import unittest
 import download
 import pipeline
 import pandas
+import yaml
 
 class TestImageDownloader(unittest.TestCase):
     def test_pathify(self):
@@ -108,6 +109,34 @@ class TestPipeline(unittest.TestCase):
         h2 = pipeline.generate_hash(dataset1, "", {'style': 'lineart'})
         self.assertNotEqual(h1, h2)
 
+    def test_permutation(self):
+        cfgspec = {
+            'parameters': {
+                'dataset_filename': ['100marvelcharacters.csv', 'kaggle.csv'],
+                'base_search_term': [
+                    'Marvel Comic Character',
+                    'Character No Background'
+                ],
+                'search_style': ['None', 'lineart'],
+                'search_domain': ['None'],
+                'optimizer': {
+                    'Adam': {'lr': [0.0001, 0.001, 0.01, 0.1]},
+                    'SGD': {
+                        'lr': [0.0001, 0.001, 0.01, 0.1],
+                        'momentum': [0.9, 0.8, 0.7]
+                    }
+                },
+                'test_size': [0.3],
+                'val_size': [0.1]
+            }
+        }
+
+        res = pipeline._get_permutations(cfgspec)
+
+        # As written, the example spec should have:
+        # 2 * 2 * 2 * (4 + 4*3) = 128 permutations
+        self.assertEqual(len(res), 128)
+
     def test_single_pass(self):
         dl_dir = "./unittest-images/"
         config = {
@@ -138,6 +167,7 @@ class TestPipeline(unittest.TestCase):
             self.assertTrue(0.0 < loss < 1.0)
             self.assertTrue(isinstance(acc, float))
             self.assertTrue(0.0 < acc < 1.0)
+
 
 
 unittest.main()
