@@ -137,6 +137,50 @@ class TestPipeline(unittest.TestCase):
         # 2 * 2 * 2 * (4 + 4*3) = 128 permutations
         self.assertEqual(len(res), 128)
 
+    def test_batch(self):
+        logdata = []
+        def do_log(params, results):
+            logdata.append((params, results))
+
+        dl_dir = "./unittest-images/"
+        cfgspec = {
+            'parameters': {
+                'dataset_filename': ['100marvelcharacters.csv'],
+                'base_search_term': [''],
+                'search_style': [None],
+                'search_domain': [None],
+                'optimizer': {
+                    'SGD': {
+                        'lr': [0.1],
+                        'momentum': [0.9],
+                     },
+                     'Adam': {
+                        'lr': [0.1],
+                     }
+                },
+                'test_size': [0.3],
+                'val_size': [0.1],
+            }
+        }
+
+        pipeline.run_group(cfgspec, do_log, imagecache=dl_dir, n_images=2)
+
+        optimizers = [p['optimizer'] for p, res in logdata]
+        self.assertTrue(('SGD', {'lr': 0.1, 'momentum': 0.9}) in optimizers)
+        self.assertTrue(('Adam', {'lr': 0.1}) in optimizers)
+
+        for params, results in logdata:
+            actual = sorted(results.keys())
+            expected = sorted(('train', 'val', 'test'))
+            self.assertEqual(actual, expected)
+
+            for testtype in results.keys():
+                actual = sorted(results[testtype].keys())
+                expected = sorted(('loss', 'accuracy'))
+                self.assertEqual(actual, expected)
+                for key in expected:
+                    self.assertTrue(isinstance(results[testtype][key], float))
+
     def test_single_pass(self):
         dl_dir = "./unittest-images/"
         config = {

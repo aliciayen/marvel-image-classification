@@ -5,30 +5,31 @@ import pandas
 import download
 import classifier
 
-def run_group(cfgspec, log_fn):
+def run_group(cfgspec, log_fn, imagecache='images', n_images=100):
     ''' pipeline.run_group(cfgspec, log_fn)
 
     Generates a list containing valid permutations of input parameters,
     according to the rules in 'cfgspec', and executes a run through the
     pipeline for each. The metrics of each run are stored by the
-    callback function 'log_fn'.
+    callback function 'log_fn', which takes the list of parameters
+    passed to run_pass and its return value as inputs.
 
     The configuration specification 'cfgspec' is a dictionary with the
     following format:
 
         parameters:
           dataset_filename: [100marvelcharacters.csv, kaggle.csv]
-          base_search_term: "Marvel Comic Character"
-          search_options:
-              style: [None, lineart]
-              domain: [None]
+          base_search_term: ["Marvel Comic Character"]
+          search_style: [None, lineart]
+          search_domain: [None]
           optimizer:
             Adam:
               lr: [0.0001, 0.001, 0.01, 0.1]
             SGD:
               lr: [0.0001, 0.001, 0.01, 0.1]
               momentum: [0.9, 0.8, 0.7]
-          test_size: 0.3
+          test_size: [0.3]
+          val_size: [0.1]
 
     Each key under 'parameters' corresponds to a parameter passed to
     pipeline.run_pass(), but the values are instead a list of values to
@@ -38,9 +39,15 @@ def run_group(cfgspec, log_fn):
     pairs of dot-delimited keys that are independent, and need not be
     varied against each other.
     '''
-    permutations = _permute(cfgspec)
-
-    raise NotImplementedError()
+    permutations = _get_permutations(cfgspec)
+    for p in permutations:
+        # Convert to nested form expected by run_pass()
+        p['search_options'] = {
+            'style': p['search_style'],
+            'domain': p['search_domain'],
+        }
+        res = run_pass(p, imagecache=imagecache, n_images=n_images)
+        log_fn(p, res)
 
 def run_pass(cfg, imagecache='images', n_images=100):
     ''' pipeline.run_pass(cfg) -> metrics
