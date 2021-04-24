@@ -108,7 +108,7 @@ def _train_one(net, criterion, optimizer, data_loader):
         running_loss += output.size(0) * loss.item()
 
         # Increment by sum of correctly predicted images  
-        running_correct += accuracy(output, label) 
+        running_correct += _accuracy(output, label)
 
         # Increment by number of images in batch 
         total += label.size(0) 
@@ -197,7 +197,7 @@ def _test_network(net, criterion, optimizer, data_loader):
             running_loss += output.size(0) * loss.item() 
 
             # Increment by count of correctly predicted images 
-            running_correct += accuracy(output, label) 
+            running_correct += _accuracy(output, label)
 
             # Increment by number of images in the batch 
             total += label.size(0) 
