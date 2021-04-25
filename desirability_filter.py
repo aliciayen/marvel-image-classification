@@ -13,387 +13,56 @@ import torch.nn.functional as F
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import datasets, transforms, models
-from torchvision.utils import make_grid
-from torch.utils.tensorboard import SummaryWriter
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-
 import os
-from google.colab import drive
+from torch import load
 
-# Mount google drive
-DRIVE_MOUNT='/content/gdrive'
-drive.mount(DRIVE_MOUNT)
-
-if torch.cuda.is_available():
-  device = torch.device("cuda")
-else:
-  device = torch.device("cpu")
-
-base_path_hero_villain = '/content/gdrive/MyDrive/CIS519/images'
-base_path_desirability = '/content/gdrive/MyDrive/CIS519/images_desirability'
-
-## Processing steps for the train and test dataset 
-## Pretrained models expect input to be resized and normalized the same way
-
-train_transform = transforms.Compose([transforms.Resize((224, 224)),
-                                      transforms.RandomHorizontalFlip(p=0.5), ## augment dataset
-                                      transforms.RandomVerticalFlip(p=0.5), ## augment dataset
-                                      transforms.RandomRotation(10), ## augment dataset
-                                      transforms.ToTensor(),
-                                      transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-                                      ])
-test_transform = transforms.Compose([transforms.Resize((224, 224)),
-                                     transforms.ToTensor(),
-                                     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-                                     ])
-
-## Customize ImageFolder to get filenames
-class ImageFolderWithNames(datasets.ImageFolder):
-    def __getitem__(self, index):
-        original_tuple = super(ImageFolderWithNames, self).__getitem__(index)
-        name = self.imgs[index][0]   ## access image filename to return 
-        tuple_with_name = (original_tuple + (name,))
-        return tuple_with_name
-
-## Create train & test dataset by loading in image data using customized ImageFolderWithNames
-
-hero_villain_train_data = ImageFolderWithNames(base_path_hero_villain + '/train', transform = train_transform)
-hero_villain_test_data = ImageFolderWithNames(base_path_hero_villain + '/test', transform = train_transform)
-
-desirability_train_data = ImageFolderWithNames(base_path_desirability + '/train', transform = test_transform)
-desirability_test_data = ImageFolderWithNames(base_path_desirability + '/test', transform = test_transform)
-
-hero_villain_train_data
-
-desirability_train_data
-
-## Pass in dataset to a DataLoader. 
-## DataLoader returns batches of images and the corresponding labels
-
-hero_villain_train_loader = torch.utils.data.DataLoader(hero_villain_train_data, batch_size=32, shuffle=True)
-hero_villain_test_loader = torch.utils.data.DataLoader(hero_villain_test_data, batch_size=32, shuffle=True)
-
-desirability_train_loader = torch.utils.data.DataLoader(desirability_train_data, batch_size=32, shuffle=True)
-desirability_test_loader = torch.utils.data.DataLoader(desirability_test_data, batch_size=32, shuffle=True)
-
-def image_show(image, title=None, size=5):
-    """Helper function to display images"""
-
-    mean = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225])
-
-    # Unnormalize image for visualizing 
-    np_img = image.numpy().transpose((1, 2, 0))
-    np_img = np_img * std + mean 
-    np_img = np.clip(np_img, 0, 1)
-
-    plt.figure(figsize=[size, size])
-    plt.imshow(np_img)
-
-    if title is not None: 
-        plt.title(title)
-
-## Create a grid of images and show images
-
-writer = SummaryWriter()
-images, labels, names = iter(desirability_train_loader).next() 
-image_grid = make_grid(images)
-image_show(image_grid, title="Random training images", size=15)
-writer.add_image('Random training images', image_grid)
-
-## Display desirable vs undesirable training images, their labels, AND THEIR NAMES
-
-images, labels, names = iter(desirability_train_loader).next()
-for i in range(10):
-    image = images[i]
-    title = f'name: {os.path.basename(names[i])} \n label: {desirability_train_data.classes[labels[i]]}'
-    image_show(image, title, size=3)
-
-## Display hero vs villain training images, their labels, AND THEIR NAMES
-
-images, labels, names = iter(hero_villain_train_loader).next()
-for i in range(10):
-    image = images[i]
-    title = f'name: {os.path.basename(names[i])} \n label: {hero_villain_train_data.classes[labels[i]]}'
-    image_show(image, title, size=3)
-
-## Print out information about an image and its label 
-
-img, label, name = desirability_train_data[500]
-print(img.shape, label, os.path.basename(name))
-img, desirability_train_data.classes[label]
-
-desirability_train_data.classes
-
-"""### Transfer learning with ResNet
-
-"""
-
-def accuracy(output, label):
-    _, pred = torch.max(output, dim=1)
-    return torch.sum(pred == label).item()
-
-resnet_model = models.resnet18(pretrained=True)
-for param in resnet_model.parameters():
-    param.requires_grad = False
-num_ftrs = resnet_model.fc.in_features
-resnet_model.fc = nn.Linear(num_ftrs, 2)
-model = resnet_model
-model.to(device)
-
-from torch.optim import lr_scheduler
-import copy
-## Criterion & Optimizer & Scheduler
-
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.0002)
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1) # decay LR
-
-def train_model(model, train_loader, optimizer, criterion, scheduler, num_epochs=20):
-    print('--' * 10 + "Beginning training" + '--' * 10)
-    print(f"Model: {model.__class__.__name__}")
-    print(f"Loss function: {criterion}")
-    print(f"Optimizer: {optimizer.__class__.__name__}")
-    print()
-
-    best_model_wts = copy.deepcopy(model.state_dict())
-    best_acc = 0.0
+def run(imagedir):
     
-    model.train()
-    model.to(device)
+    ## Transform images as training data was transformed  
+    images_transform = transforms.Compose([transforms.Resize((224,224)),
+                                            transforms.ToTensor(),
+                                            transforms.Normalize(
+                                                mean=[0.485, 0.456, 0.406],
+                                                std=[0.229, 0.224, 0.224]
+                                            )])
+    
+    ## Customize ImageFolder to get filenames
+    class ImageFolderWithNames(datasets.ImageFolder):
+        def __getitem__(self, index):
+            original_tuple = super(ImageFolderWithNames, self).__getitem__(index)
+            name = self.imgs[index][0]   ## access image filename to return 
+            tuple_with_name = (original_tuple + (name,))
+            return tuple_with_name
 
-    train_loss = []
-    train_acc = []
-    len_train = len(train_loader)
+    ## Loading in images using customized ImageFolderWithNames
+    image_dataset = ImageFolderWithNames(imagedir, transform = images_transform)
 
-    # Loop over the dataset multiple times
-    for epoch in range(num_epochs):  
-        
-        scheduler.step()
-        running_loss = 0.0
-        running_corrects = 0
-        total = 0
+    ## Pass in image dataset to DataLoader
+    image_loader = torch.utils.data.DataLoader(image_dataset, batch_size=32, shuffle=True)
 
-        for i, data in enumerate(train_loader):
-            # Get the inputs; data is a list of [inputs, labels, names]
-            inputs, labels, names = data
-            inputs, labels = inputs.to(device), labels.to(device)
+    ## Load already-trained desirability model weights
+    filter_resnet_model = models.resnet18(pretrained=True)
+    for param in filter_resnet_model.parameters():
+        param.requires_grad = False
+    num_ftrs = filter_resnet_model.fc.in_features
+    filter_resnet_model.fc = nn.Linear(num_ftrs, 2)
+    filter_resnet_model.load_state_dict(load(DesirabilityResNetClassifier.pth))
+    filter_resnet_model.eval()
 
-            # Zero the parameter gradients
-            optimizer.zero_grad()
-
-            # Forward + backward + optimize
-            outputs = model(inputs)
-            _, preds = torch.max(outputs.data, 1)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
-
-            # Stats  
-            running_loss += loss.item()*outputs.size(0)
-            running_corrects += accuracy(outputs, labels) 
-            total += labels.size(0)
-
-        # Append train accuracy & loss
-        epoch_acc = running_corrects / total
-        train_acc.append(epoch_acc)
-        epoch_loss = running_loss / total
-        train_loss.append(epoch_loss)
-
-        if epoch_acc > best_acc:
-            best_acc = epoch_acc
-            best_model_wts = copy.deepcopy(model.state_dict())
-
-        # Print epoch statistics
-        print(f"Epoch {epoch}")
-        print(f"Train loss = {train_loss[-1]}")
-        print(f"Train accuracy = {train_acc[-1]}")
-        print()
-
-    # final training accuracy
-    final_training_accuracy =  train_acc[-1] 
-
-    # final testing accuracy
-    final_training_loss = train_loss[-1]  
-    print('--' * 10 + 'Finished Training'+ '--' * 10)
-
-    model.load_state_dict(best_model_wts)
-
-    return model, final_training_loss, final_training_accuracy, train_loss, train_acc
-
-## Train model on desirable vs undesirable labeled dataset
-best_model, training_loss, training_accuracy, train_loss, train_acc = train_model(model, desirability_train_loader, optimizer, criterion, exp_lr_scheduler)
-
-print("Training Loss: ", str(training_loss))
-print("Training Accuracy: ", str(training_accuracy))
-
-"""### Evaluating on test set"""
-
-## Function for evaluating accuracy
-
-def evaluate(model, data_loader):
-    model.eval()
-    y_true = []
-    y_predicted = []
-    for image, label, name in data_loader:
-        image, label = image.to(device), label.to(device)
-        image = torch.autograd.Variable(image.float())
-        outputs = model(image)
-        _, prediction = torch.max(outputs.data, 1)
-        y_true.extend(label.tolist())
-        y_predicted.extend(prediction.tolist())
-    return y_true, y_predicted
-
-## Evaluate accuracy
-
-from sklearn.metrics import accuracy_score, f1_score
-import pandas as pd
-y_train_true, y_train_predicted = evaluate(best_model, desirability_train_loader)
-print(f'Train Accuracy: {100.* accuracy_score(y_train_true, y_train_predicted):.4f},',
-      f'Train F1 Score: {100.* f1_score(y_train_true, y_train_predicted, average="weighted"):.4f}')
-
-y_test_true, y_test_predicted = evaluate(best_model, desirability_test_loader)
-print(f'Test Accuracy: {100.* accuracy_score(y_test_true, y_test_predicted):.4f},',
-      f'Test F1 Score: {100.* f1_score(y_test_true, y_test_predicted, average="weighted"):.4f}')
-
-# Save truelabels and predictions as .csv files
-pd.DataFrame(y_test_true).to_csv('519_project_truelabels.csv', index=False)
-pd.DataFrame(y_test_predicted).to_csv('519_project_predictions.csv', index=False)
-
-from matplotlib import pyplot as plt
-
-plt.plot(train_loss)
-plt.title("Training Loss vs Epochs")
-plt.show()
-
-plt.plot(train_acc)
-plt.title("Training Accuracy vs Epochs")
-plt.show()
-
-def visualize_model(net, test_loader, test_data=0, num_images=5):
-    """
-    Visualize the network's predictions 
-    """
-
-    desirability_classes = ['desirable', 'undesirable']
-    if test_data == 0:
-        test_data_classes = ['desirable', 'undesirable']
-    else:
-        test_data_classes = ['heroes', 'villains']
-    images_so_far = 0
-
-    for i, (data, label, name) in enumerate(test_loader):
-        data, label = data.to(device), label.to(device)
-        output = net(data)
-        _, preds = torch.max(output.data, 1)
-        preds = preds.cpu().numpy() 
-
-        for j in range(data.size()[0]):
-            images_so_far += 1
-            image = data[j].cpu().detach() # Convert Tensor to NumPy and detach from GPU 
-            title = f'predicts: {desirability_classes[preds[j]]} \n label: {test_data_classes[label[j]]} \n name: {os.path.basename(name[j])}'
-
-            image_show(image, title, size=3)
-            
-            if images_so_far == num_images:
-                return
-
-visualize_model(model, desirability_test_loader, 0, 10)
-
-
-
-## Run hero vs villain dataset through trained model to classify as desirable vs undesirable
-
-# test_network(resnet_desirability_model, criterion, Adam_optimizer, hero_villain_train_loader)
-visualize_model(model, hero_villain_train_loader, 1, 10)
-
-## dump undesirable images, by saving desirable images to feed into hero/villain training and testing
-from torchvision.utils import save_image
-def save_desirables(net, loader, train=1):
-    """
-    Save desirable images to google drive, to send to hero/villain classifier 
-    """
-
-    desirable_heroes_image_list = []
-    desirable_villains_image_list = []
-    undesirable_heroes_image_list = []
-    undesirable_villains_image_list = []
-
+    ## Run images through filter to filter out undesirable images from imagedir
+    undesirable_images = []
     desirability_classes = ['desirable', 'undesirable']
     test_data_classes = ['heroes', 'villains']
 
-    if train == 1:
-      print('--' * 10 + 'Starting saving desirable hero/villain labeled training data'+ '--' * 10)
-      folder_path = "processed_images_train"
-    else: 
-      print('--' * 10 + 'Starting saving desirable hero/villain labeled testing data'+ '--' * 10)
-      folder_path = "processed_images_test"
-
-    for i, (data, label, name) in enumerate(loader):
-        data, label = data.to(device), label.to(device)
-        output = net(data)
+    for i, (data, label, name) in enumerate(image_loader):
+        output = filter_resnet_model(data)
         _, preds = torch.max(output.data, 1)
         preds = preds.cpu().numpy() 
         for j in range(data.size()[0]):
-            image = data[j].cpu().detach() # Convert Tensor to NumPy and detach from GPU 
-            #title = f'predicts: {desirability_classes[preds[j]]} \n label: {test_data_classes[label[j]]}'
-            if desirability_classes[preds[j]] == "desirable" and test_data_classes[label[j]] == "heroes":
-              desirable_heroes_image_list.append(os.path.basename(name[j]))
-              path = "/content/gdrive/MyDrive/CIS519/" + folder_path + "/heroes/"
-              save_image(image, path + str(i) + "_" + str(j) + ".jpeg", format="JPEG")
-            if desirability_classes[preds[j]] == "desirable" and test_data_classes[label[j]] == "villains":
-              desirable_villains_image_list.append(os.path.basename(name[j]))
-              path = "/content/gdrive/MyDrive/CIS519/" + folder_path + "/villains/"
-              save_image(image, path + str(i) + "_" + str(j) + ".jpeg", format="JPEG")
-            if desirability_classes[preds[j]] == "undesirable" and test_data_classes[label[j]] == "heroes":
-              undesirable_heroes_image_list.append(os.path.basename(name[j]))
-            if desirability_classes[preds[j]] == "undesirable" and test_data_classes[label[j]] == "villains":
-              undesirable_villains_image_list.append(os.path.basename(name[j]))
-
-    return desirable_heroes_image_list, desirable_villains_image_list, undesirable_heroes_image_list, undesirable_villains_image_list
-
-desirable_heroes_image_list, desirable_villains_image_list, undesirable_heroes_image_list, undesirable_villains_image_list = save_desirables(model, hero_villain_train_loader)
-print("undesirable_heroes_image_list: ", undesirable_heroes_image_list)
-print('--' * 10 + 'Finished saving desirable hero/villain labeled training data'+ '--' * 10)
-desirable_heroes_image_list, desirable_villains_image_list, undesirable_heroes_image_list, undesirable_villains_image_list = save_desirables(model, hero_villain_test_loader, train=0)
-print("undesirable_heroes_image_list: ", undesirable_heroes_image_list)
-print('--' * 10 + 'Finished saving desirable her/villain labeled testing data'+ '--' * 10)
-
-## Load processed hero vs villain labeled data
-
-processed_hero_villain_train_data = ImageFolderWithNames('/content/gdrive/MyDrive/CIS519/processed_images_train', transform = train_transform)
-processed_hero_villain_train_loader = torch.utils.data.DataLoader(processed_hero_villain_train_data, batch_size=32, shuffle=True)
-
-processed_hero_villain_test_data = ImageFolderWithNames('/content/gdrive/MyDrive/CIS519/processed_images_test', transform = test_transform)
-processed_hero_villain_test_loader = torch.utils.data.DataLoader(processed_hero_villain_test_data, batch_size=32, shuffle=True)
-
-## Instantiate new model
-resnet_model = models.resnet18(pretrained=True)
-for param in resnet_model.parameters():
-    param.requires_grad = False
-num_ftrs = resnet_model.fc.in_features
-resnet_model.fc = nn.Linear(num_ftrs, 2)
-hero_villain_model = resnet_model
-hero_villain_model.to(device)
-
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(hero_villain_model.parameters(), lr=0.0002)
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1) # decay LR
-
-## Train the new model on processed hero vs villain labeled data
-best_model, training_loss, training_accuracy, train_loss, train_acc = train_model(hero_villain_model, processed_hero_villain_train_loader, optimizer, criterion, exp_lr_scheduler)
-print("Training Loss: ", str(training_loss))
-print("Training Accuracy: ", str(training_accuracy))
-
-## Evaluate accuracy of hero vs villain classification
-
-y_train_true, y_train_predicted = evaluate(best_model, processed_hero_villain_train_loader)
-print(f'Train Accuracy: {100.* accuracy_score(y_train_true, y_train_predicted):.4f},',
-      f'Train F1 Score: {100.* f1_score(y_train_true, y_train_predicted, average="weighted"):.4f}')
-
-y_test_true, y_test_predicted = evaluate(best_model, hero_villain_test_loader)
-print(f'Test Accuracy: {100.* accuracy_score(y_test_true, y_test_predicted):.4f},',
-      f'Test F1 Score: {100.* f1_score(y_test_true, y_test_predicted, average="weighted"):.4f}')
-
+            if desirability_classes[preds[j]] == "undesirable":
+              undesirable_images.append(os.path.basename(name[j]))
+    
+    return undesirable_images

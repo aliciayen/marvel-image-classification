@@ -173,6 +173,13 @@ def filter_imageset(imagedir):
     "undesirable" using a CNN classifier.
     '''
     # FIXME: implement filtering
+    
+    rejects = desirability_filter.run(imagedir + "base")
+    ##rejects += desirability_filter.run(imagedir + "base/Villain")
+    for imgpath in rejects:
+        if os.path.exists(imgpath):
+            os.remove(imgpath)
+    
     return
 
 def train_test_split(imagedir, test_fraction, val_fraction):
