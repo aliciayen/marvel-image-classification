@@ -174,7 +174,7 @@ def filter_imageset(imagedir):
     "undesirable" using a CNN classifier.
     '''
     
-    rejects = desirability_filter.run(imagedir + "base")
+    rejects = desirability_filter.run(imagedir + "/" + "base")
     for imgpath in rejects:
         if os.path.exists(imgpath):
             os.remove(imgpath)
