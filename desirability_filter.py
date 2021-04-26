@@ -49,7 +49,8 @@ def run(imagedir):
         param.requires_grad = False
     num_ftrs = filter_resnet_model.fc.in_features
     filter_resnet_model.fc = nn.Linear(num_ftrs, 2)
-    filter_resnet_model.load_state_dict(load(DesirabilityResNetClassifier.pth))
+    model_state = load('DesirabilityResNetClassifier.pth')
+    filter_resnet_model.load_state_dict(model_state)
     filter_resnet_model.eval()
 
     ## Run images through filter to filter out undesirable images from imagedir
