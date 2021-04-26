@@ -4,6 +4,7 @@ import random
 import pandas
 import download
 import classifier
+import desirability_filter
 
 def run_group(cfgspec, log_fn, imagecache='images', n_images=100):
     ''' pipeline.run_group(cfgspec, log_fn)
@@ -172,10 +173,8 @@ def filter_imageset(imagedir):
     Given a directory of images, delete images that are deemed
     "undesirable" using a CNN classifier.
     '''
-    # FIXME: implement filtering
     
-    rejects = desirability_filter.run(imagedir + "base")
-    ##rejects += desirability_filter.run(imagedir + "base/Villain")
+    rejects = desirability_filter.run(imagedir + "/" + "base")
     for imgpath in rejects:
         if os.path.exists(imgpath):
             os.remove(imgpath)
