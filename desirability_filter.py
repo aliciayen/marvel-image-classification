@@ -49,7 +49,12 @@ def run(imagedir):
         param.requires_grad = False
     num_ftrs = filter_resnet_model.fc.in_features
     filter_resnet_model.fc = nn.Linear(num_ftrs, 2)
-    model_state = load('DesirabilityResNetClassifier.pth')
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+    else:
+        device = torch.device('cpu')
+    model_state = load('DesirabilityResNetClassifier.pth',
+                       map_location=device)
     filter_resnet_model.load_state_dict(model_state)
     filter_resnet_model.eval()
 
