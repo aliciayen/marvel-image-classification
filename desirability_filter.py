@@ -60,7 +60,7 @@ def run(imagedir):
 
     ## Run images through filter to filter out undesirable images from imagedir
     desirable_heroes = []
-    desirables_villains = []
+    desirable_villains = []
     undesirable_heroes = []
     undesirable_villains = []
     desirability_classes = ['desirable', 'undesirable']
