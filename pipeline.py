@@ -177,19 +177,19 @@ def filter_imageset(imagedir):
     desirable_heroes, desirable_villains, undesirable_heroes, undesirable_villains = desirability_filter.run(imagedir + "/" + "base")
     for imgpath in undesirable_heroes:
         try:
-            filepath = imagedir + "/base/heroes"
+            filepath = imagedir + "/base/Hero"
             os.remove(os.path.join(filepath, imgpath))
         except OSError as e:
             print ("Failed to remove %s\nError is: %s" % (imgpath,e))
     
     for imgpath in undesirable_villains:
         try:
-            filepath = imagedir + "/base/villains"
+            filepath = imagedir + "/base/Villain"
             os.remove(os.path.join(filepath, imgpath))
         except OSError as e:
             print ("Failed to remove %s\nError is: %s" % (imgpath,e))
 
-    return
+    return 
 
 def train_test_split(imagedir, test_fraction, val_fraction):
     ''' pipeline.train_test_split(imgdir, tst_pct, val_pct) -> splitdir
