@@ -189,7 +189,7 @@ def filter_imageset(imagedir):
         except OSError as e:
             print ("Failed to remove %s\nError is: %s" % (imgpath,e))
 
-    return desirable_heroes, desirable_villains, undesirable_heroes, undesirable_villains
+    return
 
 def train_test_split(imagedir, test_fraction, val_fraction):
     ''' pipeline.train_test_split(imgdir, tst_pct, val_pct) -> splitdir
