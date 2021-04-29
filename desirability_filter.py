@@ -59,7 +59,10 @@ def run(imagedir):
     filter_resnet_model.eval()
 
     ## Run images through filter to filter out undesirable images from imagedir
-    undesirable_images = []
+    desirable_heroes = []
+    desirables_villains = []
+    undesirable_heroes = []
+    undesirable_villains = []
     desirability_classes = ['desirable', 'undesirable']
     test_data_classes = ['heroes', 'villains']
 
@@ -68,7 +71,13 @@ def run(imagedir):
         _, preds = torch.max(output.data, 1)
         preds = preds.cpu().numpy() 
         for j in range(data.size()[0]):
-            if desirability_classes[preds[j]] == "undesirable":
-              undesirable_images.append(os.path.basename(name[j]))
+            if desirability_classes[preds[j]] == "desirable" and test_data_classes[label[j]] == "heroes":
+                desirable_heroes.append(os.path.basename(name[j]))
+            if desirability_classes[preds[j]] == "desirable" and test_data_classes[label[j]] == "villains":
+                desirable_villains.append(os.path.basename(name[j]))
+            if desirability_classes[preds[j]] == "undesirable" and test_data_classes[label[j]] == "heroes":
+                undesirable_heroes.append(os.path.basename(name[j]))
+            if desirability_classes[preds[j]] == "undesirable" and test_data_classes[label[j]] == "villains":
+                undesirable_villains.append(os.path.basename(name[j]))
     
-    return undesirable_images
+    return desirable_heroes, desirable_villains, undesirable_heroes, undesirable_villains

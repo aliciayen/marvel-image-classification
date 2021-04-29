@@ -174,12 +174,22 @@ def filter_imageset(imagedir):
     "undesirable" using a CNN classifier.
     '''
     
-    rejects = desirability_filter.run(imagedir + "/" + "base")
-    for imgpath in rejects:
-        if os.path.exists(imgpath):
-            os.remove(imgpath)
+    desirable_heroes, desirable_villains, undesirable_heroes, undesirable_villains = desirability_filter.run(imagedir + "/" + "base")
+    for imgpath in undesirable_heroes:
+        try:
+            filepath = imagedir + "/base/heroes"
+            os.remove(os.path.join(filepath, imgpath))
+        except OSError as e:
+            print ("Failed to remove %s\nError is: %s" % (imgpath,e))
     
-    return
+    for imgpath in undesirable_villains:
+        try:
+            filepath = imagedir + "/base/villains"
+            os.remove(os.path.join(filepath, imgpath))
+        except OSError as e:
+            print ("Failed to remove %s\nError is: %s" % (imgpath,e))
+
+    return desirable_heroes, desirable_villains, undesirable_heroes, undesirable_villains
 
 def train_test_split(imagedir, test_fraction, val_fraction):
     ''' pipeline.train_test_split(imgdir, tst_pct, val_pct) -> splitdir
