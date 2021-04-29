@@ -5,6 +5,7 @@ import pandas
 import download
 import classifier
 import desirability_filter
+import shutil
 
 def run_group(cfgspec, log_fn, imagecache='images', n_images=100):
     ''' pipeline.run_group(cfgspec, log_fn)
