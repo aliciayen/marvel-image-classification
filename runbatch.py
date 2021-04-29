@@ -13,7 +13,8 @@ class CSVLogger:
 
         if isinstance(outfile, str):
             outfile = open(outfile, "w")
-        self._writer = csv.writer(outfile)
+        self._outfile = outfile
+        self._writer = csv.writer(self._outfile)
 
     def log_run(self, params, results):
         params = self._flatten_params(params)
@@ -25,6 +26,7 @@ class CSVLogger:
 
         data = list(params.values()) + list(results.values())
         self._writer.writerow(data)
+        self._outfile.flush()
         self.rows_written += 1
 
     @staticmethod
