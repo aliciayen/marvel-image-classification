@@ -53,7 +53,7 @@ def run(imagedir):
         device = torch.device('cuda')
     else:
         device = torch.device('cpu')
-    model_state = load('DesirabilityResNetClassifier.pth',
+    model_state = load('DesirabilityClassifier.pth',
                        map_location=device)
     filter_resnet_model.load_state_dict(model_state)
     filter_resnet_model.eval()
