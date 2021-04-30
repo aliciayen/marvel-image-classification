@@ -2,6 +2,7 @@ import os
 import hashlib
 import random
 import pandas
+import PIL
 import download
 import classifier
 import desirability_filter
@@ -165,6 +166,7 @@ def prepare_imageset(dataset, base_search_term, search_opts, output_dir,
             download.download_images(url, pattern, download_count)
 
         filter_imageset(imgdir)
+        generate_image_transforms(imgdir)
 
     return imgdir
 
@@ -191,6 +193,35 @@ def filter_imageset(imagedir):
             print ("Failed to remove %s\nError is: %s" % (imgpath,e))
 
     return 
+
+def generate_image_transforms(imgdir):
+    ''' pipeline.generate_image_transforms(imagedir)
+
+    Given an image directory, extend the dataset by creating
+    transformed (flipped, rotated) copies of the images.
+    '''
+
+    basedir = imgdir + "/" + "base"
+    xform_dirs = ("%s/Hero" % basedir, "%s/Villain" % basedir)
+    xforms = {
+        'lr': PIL.Image.FLIP_LEFT_RIGHT,
+        'tb': PIL.Image.FLIP_TOP_BOTTOM,
+        'r90': PIL.Image.ROTATE_90,
+        'r180': PIL.Image.ROTATE_180,
+        'r270': PIL.Image.ROTATE_270,
+        'tr': PIL.Image.TRANSPOSE
+    }
+
+    for xdir in xform_dirs:
+        for imgfile in os.listdir(xdir):
+            filename_parts = imgfile.split('.')
+            for suffix, xform in xforms.items():
+                img = PIL.Image.open("%s/%s" % (xdir, imgfile))
+                out = img.transpose(xform)
+
+                basename, count, ext = filename_parts
+                out.save("%s/%s.%s.%s.%s" % (xdir, basename, count,
+                                             suffix, ext))
 
 def train_test_split(imagedir, test_fraction, val_fraction):
     ''' pipeline.train_test_split(imgdir, tst_pct, val_pct) -> splitdir
