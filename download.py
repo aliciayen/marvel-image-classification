@@ -45,14 +45,14 @@ def main():
                                       domain=opts.domain)
             download_images(url, destpattern, int(opts.count))
 
-def download_images(url, destpattern, count):
-    ''' download.download_images(url, destpattern, count)
+def download_images(url, destpattern, count, startnum=0):
+    ''' download.download_images(url, destpattern, count, ...)
 
     Performs a Google using the URL provided in 'url', and downloads the
     resulting images to the output directory, with filenames
     corresponding to 'destpattern'. The number of downloaded images is
-    limited to 'count', or the number of results on the first page,
-    whichever is smaller.
+    limited to 'count'. If 'startnum' is specified, downloaded images
+    will be numbered starting from the given integer value.
     '''
 
     response = requests.get(url)
@@ -69,9 +69,16 @@ def download_images(url, destpattern, count):
     for i, img in enumerate(image_urls[:limit]):
         resp = requests.get(img)
         filetype = _check_magic(resp.content)
-        out_fname = destpattern + ".%03i.%s" % (i, filetype)
+        out_fname = destpattern + ".%03i.%s" % (startnum + i, filetype)
         with open(out_fname, 'wb') as f:
             f.write(resp.content)
+
+    n_downloaded = i + 1
+    n_remaining = count - n_downloaded
+    if (n_remaining > 0):
+        offset = startnum + (i + 1)
+        new_url = _set_search_url_offset(url, offset)
+        download_images(new_url, destpattern, n_remaining, startnum=offset)
 
 def generate_search_url(search_term, style=None, domain=None):
     ''' download.generate_search_url(search_term, ...) -> url
@@ -83,7 +90,7 @@ def generate_search_url(search_term, style=None, domain=None):
 
     if style is not None:
         if style not in IMAGE_STYLES:
-            raise ValueError("Unsupported image type")
+            raise ValueError("Unsupported image style: '%s'" % style)
         tbs = "itp:%s" % style
     else:
         tbs = ""
@@ -134,6 +141,16 @@ def _check_magic(img):
             return filetype
     else:
         return 'img'
+
+def _set_search_url_offset(url, offset):
+        parsed = urllib.parse.urlparse(url)
+        query = urllib.parse.parse_qs(parsed.query)
+        query['start'] = [str(offset)]
+        query = {param:value[0] for param,value in query.items()}
+
+        new_url = "%s://%s%s?%s" % (parsed.scheme, parsed.netloc, parsed.path,
+                                    urllib.parse.urlencode(query))
+        return new_url
 
 
 if __name__ == '__main__':

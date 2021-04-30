@@ -5,7 +5,7 @@ Iron Man,Hero
 Luke Cage,Hero
 Hawkeye,Hero
 Deadpool,Hero
-The Thing,Hero
+Thing,Hero
 Moon Knight,Hero
 Black Widow,Hero
 Hulk,Hero
@@ -14,38 +14,38 @@ Daredevil,Hero
 Nightcrawler,Hero
 Captain Marvel,Hero
 Quicksilver,Hero
-Nova (Richard Rider),Hero
+Nova,Hero
 Ghost Rider,Hero
-Blade (Eric Brooks),Hero
+Blade,Hero
 Kitty Pryde,Hero
 Namor McKenzie,Hero
 Invisible Woman,Hero
 Silver Surfer,Hero
 Black Panther,Hero
 Elektra Natchios,Hero
-Cyclops (Scott Summers),Hero
-Quasar (Wendell Vaughn),Hero
-Wasp (Janet van Dyne),Hero
+Cyclops,Hero
+Quasar,Hero
+Wasp,Hero
 Black Bolt,Hero
 Ant-Man,Hero
 X-23,Hero
-Storm (Ororo Munroe),Hero
-The Vision,Hero
+Storm,Hero
+Vision,Hero
 Gamora,Hero
 Captain America,Hero
 Scarlet Witch,Hero
-Falcon (Samuel Thomas Wilson),Hero
+Falcon,Hero
 Rocket Raccoon,Hero
 Drax the Destroyer,Hero
-Mr. Fantastic,Hero
+Mr Fantastic,Hero
 Groot,Hero
-Rogue (Anna Marie),Hero
+Rogue,Hero
 Jean Grey,Hero
-Cable (Nathan Summers),Hero
+Cable,Hero
 She-Hulk,Hero
 Thor,Hero
-Black Knight (Dane Whitman),Hero
-Gambit (Remy LeBeau),Hero
+Black Knight,Hero
+Gambit,Hero
 Wolverine,Hero
 Iron Fist,Hero
 The Punisher,Hero
@@ -53,49 +53,49 @@ Magneto,Villain
 Doctor Doom,Villain
 Venom,Villain
 Juggernaut,Villain
-Apocalypse (En Sabah Nur),Villain
+Apocalypse,Villain
 Thanos,Villain
 Galactus,Villain
 Loki,Villain
 Sabretooth,Villain
-Bullseye (Lester),Villain
-Kingpin (Wilson Grant Fisk),Villain
+Bullseye,Villain
+Kingpin,Villain
 Carnage,Villain
 Mystique,Villain
 Ultron,Villain
 Doctor Octopus,Villain
-Red Skull (Johann Schmidt),Villain
-Sandman (William Baker),Villain
-Lizard (Curtis Connors),Villain
-Abomination (Emil Blonsky),Villain
+Red Skull,Villain
+Sandman,Villain
+Lizard,Villain
+Abomination,Villain
 Mephisto,Villain
-Mr. Sinister,Villain
+Mr Sinister,Villain
 Mysterio,Villain
 Omega Red,Villain
 Dormammu,Villain
 Blackheart,Villain
 Onslaught,Villain
 Super-Skrull,Villain
-Mandarin (Marvel),Villain
+Mandarin,Villain
 Kraven the Hunter,Villain
 Hobgoblin,Villain
-Pyro (St. John Allerdyce),Villain
-Rhino (Aleksei Sytsevich),Villain
+Pyro,Villain
+Rhino,Villain
 Lady Deathstrike,Villain
-Scorpion (MacDonald Gargan),Villain
-Vulcan (Gabriel Summers),Villain
+Scorpion,Villain
+Vulcan,Villain
 Electro,Villain
-Silver Samurai (Harada),Villain
+Silver Samurai,Villain
 Absorbing Man,Villain
-Barracuda (Marvel),Villain
-Iron Monger (Obadiah Stane),Villain
-The Hood (Parker Robbins),Villain
+Barracuda,Villain
+Iron Monger,Villain
+The Hood,Villain
 Morbius,Villain
-Chameleon (Dmitri Smerdyakov),Villain
-Daken (Akihiro),Villain
+Chameleon,Villain
+Daken Akihiro,Villain
 Sebastian Hiram Shaw,Villain
-Jigsaw (Billy Russo),Villain
-Taskmaster (Tony Masters),Villain
+Jigsaw,Villain
+Taskmaster,Villain
 Kang the Conqueror,Villain
 Green Goblin,Villain
-Viper (Madame Hydra),Villain
+Viper,Villain
