@@ -30,5 +30,9 @@ All possible permutations of the values given for the parameters will be added t
 * *run_batch.py* - Helper file that reads in the YAML input and outputs a CSV file containing the scoring metrics. 
 
 ### Getting Started
-To start our program, use the command: *python3 runbatch.py -n 100 -o metrics.csv cfgspec.yaml*
+
+To start our program, use the command: 
+
+*$ python3 runbatch.py -n 100 -o metrics.csv cfgspec.yaml*
+
 *Note:* This will read in the YAML file 'cfgspec.yaml', download 100 images per character, run through the full Pipeline process, and output a CSV file titled 'metrics.csv'
