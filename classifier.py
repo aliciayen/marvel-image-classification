@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 import torch.optim as optim
+from torch.optim import lr_scheduler
 from torchvision import datasets, transforms, models
 from torchvision.utils import make_grid
 from torch.utils.tensorboard import SummaryWriter
@@ -23,6 +24,9 @@ def evaluate(image_path, opt_name, opt_kwargs):
 
     train_transform = transforms.Compose([transforms.Resize((224, 224)),
                                           transforms.RandomHorizontalFlip(),
+                                        #   transforms.RandomHorizontalFlip(p=0.5),
+                                        #   transforms.RandomVerticalFlip(p=0.5),
+                                        #   transforms.RandomRotation(10),
                                           transforms.ToTensor(),
                                           transforms.Normalize(
                                               mean=[0.485, 0.456, 0.406],
@@ -68,8 +72,10 @@ def evaluate(image_path, opt_name, opt_kwargs):
 
     criterion = nn.CrossEntropyLoss()
     optimizer = getattr(optim, opt_name)(resnet.fc.parameters(), **opt_kwargs)
+    exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
+    
     train_stats = _train_network(resnet, criterion, optimizer, train_loader,
-                                 val_loader)
+                                 val_loader, exp_lr_scheduler)
     test_stats = _test_network(resnet, criterion, optimizer, test_loader)
 
     train_summary = {
@@ -93,7 +99,7 @@ def _accuracy(output, label):
     _, pred = torch.max(output, dim=1)
     return torch.sum(pred == label).item()
 
-def _train_one(net, criterion, optimizer, data_loader):
+def _train_one(net, criterion, optimizer, data_loader, scheduler):
     """
     Function to train network for one epoch 
     """
@@ -125,6 +131,9 @@ def _train_one(net, criterion, optimizer, data_loader):
         # Increment by number of images in batch 
         total += label.size(0) 
 
+    # Learning rate scheduler
+    scheduler.step()
+    
     # Compute train loss for this epoch
     train_loss = running_loss / total
 
@@ -137,7 +146,7 @@ def _train_one(net, criterion, optimizer, data_loader):
         'accuracy': train_acc,
     }
 
-def _train_network(net, criterion, optimizer, train_loader, val_loader, epochs=10):
+def _train_network(net, criterion, optimizer, train_loader, val_loader, scheduler, epochs=20):
     """
     Function to train your network for multiple epochs
     """
@@ -158,7 +167,7 @@ def _train_network(net, criterion, optimizer, train_loader, val_loader, epochs=1
     for epoch in range(1, epochs+1):
 
         # Train network for 1 epoch 
-        res = _train_one(net, criterion, optimizer, train_loader)
+        res = _train_one(net, criterion, optimizer, train_loader, scheduler)
         train_loss = res['loss']
         train_acc = res['accuracy']
 
